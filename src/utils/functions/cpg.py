@@ -1,4 +1,5 @@
 from collections import OrderedDict
+
 from ..objects.cpg.function import Function
 
 
@@ -19,9 +20,13 @@ def order_nodes(nodes, max_nodes):
 
 
 def filter_nodes(nodes):
-    return {n_id: node for n_id, node in nodes.items() if node.has_code() and
-            node.has_line_number() and
-            node.label not in ["Comment", "Unknown"]}
+    return {
+        n_id: node
+        for n_id, node in nodes.items()
+        if node.has_code()
+        and node.has_line_number()
+        and node.label not in ["Comment", "Unknown"]
+    }
 
 
 def parse_to_nodes(cpg, max_nodes=500):

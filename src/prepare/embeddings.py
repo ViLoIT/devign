@@ -1,9 +1,10 @@
 import numpy as np
 import torch
-from torch_geometric.data import Data
-from src.utils.functions.parse import tokenizer
-from src.utils import log as logger
 from gensim.models.keyedvectors import Word2VecKeyedVectors
+from torch_geometric.data import Data
+
+from src.utils import log as logger
+from src.utils.functions.parse import tokenizer
 
 
 class NodesEmbedding:
@@ -21,7 +22,7 @@ class NodesEmbedding:
         embedded_nodes = self.embed_nodes(nodes)
         nodes_tensor = torch.from_numpy(embedded_nodes).float()
 
-        self.target[:nodes_tensor.size(0), :] = nodes_tensor
+        self.target[: nodes_tensor.size(0), :] = nodes_tensor
 
         return self.target
 
@@ -36,14 +37,16 @@ class NodesEmbedding:
             if not tokenized_code:
                 # print(f"Dropped node {node}: tokenized code is empty.")
                 msg = f"Empty TOKENIZED from node CODE {node_code}"
-                logger.log_warning('embeddings', msg)
+                logger.log_warning("embeddings", msg)
                 continue
             # Get each token's learned embedding vector
             vectorized_code = np.array(self.get_vectors(tokenized_code, node))
             # The node's source embedding is the average of it's embedded tokens
             source_embedding = np.mean(vectorized_code, 0)
             # The node representation is the concatenation of label and source embeddings
-            embedding = np.concatenate((np.array([node.type]), source_embedding), axis=0)
+            embedding = np.concatenate(
+                (np.array([node.type]), source_embedding), axis=0
+            )
             embeddings.append(embedding)
         # print(node.label, node.properties.properties.get("METHOD_FULL_NAME"))
 
@@ -59,9 +62,14 @@ class NodesEmbedding:
             else:
                 # print(node.label, token, node.get_code(), tokenized_code)
                 vectors.append(np.zeros(self.kv_size))
-                if node.label not in ["Identifier", "Literal", "MethodParameterIn", "MethodParameterOut"]:
+                if node.label not in [
+                    "Identifier",
+                    "Literal",
+                    "MethodParameterIn",
+                    "MethodParameterOut",
+                ]:
                     msg = f"No vector for TOKEN {token} in {node.get_code()}."
-                    logger.log_warning('embeddings', msg)
+                    logger.log_warning("embeddings", msg)
 
         return vectors
 

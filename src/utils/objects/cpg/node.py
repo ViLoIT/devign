@@ -1,20 +1,77 @@
-from .properties import Properties
-from .edge import Edge
 from ... import log as logger
+from .edge import Edge
+from .properties import Properties
 
-node_labels = ["Block", "Call", "Comment", "ControlStructure", "File", "Identifier", "FieldIdentifier", "Literal",
-               "Local", "Member", "MetaData", "Method", "MethodInst", "MethodParameterIn", "MethodParameterOut",
-               "MethodReturn", "Namespace", "NamespaceBlock", "Return", "Type", "TypeDecl", "Unknown"]
+node_labels = [
+    "Block",
+    "Call",
+    "Comment",
+    "ControlStructure",
+    "File",
+    "Identifier",
+    "FieldIdentifier",
+    "Literal",
+    "Local",
+    "Member",
+    "MetaData",
+    "Method",
+    "MethodInst",
+    "MethodParameterIn",
+    "MethodParameterOut",
+    "MethodReturn",
+    "Namespace",
+    "NamespaceBlock",
+    "Return",
+    "Type",
+    "TypeDecl",
+    "Unknown",
+]
 
-operators = ['addition', 'addressOf', 'and', 'arithmeticShiftRight', 'assignment',
-             'assignmentAnd', 'assignmentArithmeticShiftRight', 'assignmentDivision',
-             'assignmentMinus', 'assignmentMultiplication', 'assignmentOr', 'assignmentPlus',
-             'assignmentShiftLeft', 'assignmentXor', 'cast', 'conditionalExpression',
-             'division', 'equals', 'fieldAccess', 'greaterEqualsThan', 'greaterThan',
-             'indirectFieldAccess', 'indirectIndexAccess', 'indirection', 'lessEqualsThan',
-             'lessThan', 'logicalAnd', 'logicalNot', 'logicalOr', 'minus', 'modulo', 'multiplication',
-             'not', 'notEquals', 'or', 'postDecrement', 'plus', 'postIncrement', 'preDecrement',
-             'preIncrement', 'shiftLeft', 'sizeOf', 'subtraction']
+operators = [
+    "addition",
+    "addressOf",
+    "and",
+    "arithmeticShiftRight",
+    "assignment",
+    "assignmentAnd",
+    "assignmentArithmeticShiftRight",
+    "assignmentDivision",
+    "assignmentMinus",
+    "assignmentMultiplication",
+    "assignmentOr",
+    "assignmentPlus",
+    "assignmentShiftLeft",
+    "assignmentXor",
+    "cast",
+    "conditionalExpression",
+    "division",
+    "equals",
+    "fieldAccess",
+    "greaterEqualsThan",
+    "greaterThan",
+    "indirectFieldAccess",
+    "indirectIndexAccess",
+    "indirection",
+    "lessEqualsThan",
+    "lessThan",
+    "logicalAnd",
+    "logicalNot",
+    "logicalOr",
+    "minus",
+    "modulo",
+    "multiplication",
+    "not",
+    "notEquals",
+    "or",
+    "postDecrement",
+    "plus",
+    "postIncrement",
+    "preDecrement",
+    "preIncrement",
+    "shiftLeft",
+    "sizeOf",
+    "subtraction",
+]
 
 node_labels += operators
 
@@ -29,7 +86,10 @@ class Node:
         self.label = self.id.split("@")[0]
         self.indentation = indentation + 1
         self.properties = Properties(node["properties"], self.indentation)
-        self.edges = {edge["id"].split(".")[-1]: Edge(edge, self.indentation) for edge in node["edges"]}
+        self.edges = {
+            edge["id"].split(".")[-1]: Edge(edge, self.indentation)
+            for edge in node["edges"]
+        }
         self.order = None
         operator = self.properties.get_operator()
         self.label = operator if operator is not None else self.label
@@ -47,7 +107,8 @@ class Node:
 
     def connections(self, connections, e_type):
         for e_id, edge in self.edges.items():
-            if edge.type != e_type: continue
+            if edge.type != e_type:
+                continue
 
             if edge.node_in in connections["in"] and edge.node_in != self.id:
                 connections["in"][self.id] = edge.node_in

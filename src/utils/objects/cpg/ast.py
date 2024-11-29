@@ -5,7 +5,9 @@ class AST:
     def __init__(self, nodes, indentation):
         self.size = len(nodes)
         self.indentation = indentation + 1
-        self.nodes = {node["id"].split(".")[-1]: Node(node, self.indentation) for node in nodes}
+        self.nodes = {
+            node["id"].split(".")[-1]: Node(node, self.indentation) for node in nodes
+        }
 
     def __str__(self):
         indentation = self.indentation * "\t"

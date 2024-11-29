@@ -1,8 +1,8 @@
 import pandas as pd
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
 
 from .. import log as logger
-from sklearn.metrics import confusion_matrix
-from sklearn import metrics
 
 
 class Metrics:
@@ -23,30 +23,48 @@ class Metrics:
         string = f"\nConfusion matrix: \n"
         string += f"{confusion}\n"
         string += f"TP: {tp}, FP: {fp}, TN: {tn}, FN: {fn}\n"
-        string += '\n'.join([name + ": " + str(metric) for name, metric in self().items()])
+        string += "\n".join(
+            [name + ": " + str(metric) for name, metric in self().items()]
+        )
         return string
 
     def __call__(self):
-        _metrics = {"Accuracy": metrics.accuracy_score(y_true=self.labels, y_pred=self.predicts),
-                    "Precision": metrics.precision_score(y_true=self.labels, y_pred=self.predicts),
-                    "Recall": metrics.recall_score(y_true=self.labels, y_pred=self.predicts),
-                    "F-measure": metrics.f1_score(y_true=self.labels, y_pred=self.predicts),
-                    "Precision-Recall AUC": metrics.average_precision_score(y_true=self.labels, y_score=self.scores),
-                    "AUC": metrics.roc_auc_score(y_true=self.labels, y_score=self.scores),
-                    "MCC": metrics.matthews_corrcoef(y_true=self.labels, y_pred=self.predicts),
-                    "Error": self.error()}
+        _metrics = {
+            "Accuracy": metrics.accuracy_score(
+                y_true=self.labels, y_pred=self.predicts
+            ),
+            "Precision": metrics.precision_score(
+                y_true=self.labels, y_pred=self.predicts
+            ),
+            "Recall": metrics.recall_score(y_true=self.labels, y_pred=self.predicts),
+            "F-measure": metrics.f1_score(y_true=self.labels, y_pred=self.predicts),
+            "Precision-Recall AUC": metrics.average_precision_score(
+                y_true=self.labels, y_score=self.scores
+            ),
+            "AUC": metrics.roc_auc_score(y_true=self.labels, y_score=self.scores),
+            "MCC": metrics.matthews_corrcoef(y_true=self.labels, y_pred=self.predicts),
+            "Error": self.error(),
+        }
 
         return _metrics
 
     def log(self):
         excluded = ["Precision-Recall AUC", "AUC"]
         _metrics = self()
-        msg = ' - '.join(
-            [f"({name[:3]} {round(metric, 3)})" for name, metric in _metrics.items() if name not in excluded])
+        msg = " - ".join(
+            [
+                f"({name[:3]} {round(metric, 3)})"
+                for name, metric in _metrics.items()
+                if name not in excluded
+            ]
+        )
 
-        logger.log_info('metrics', msg)
+        logger.log_info("metrics", msg)
 
     def error(self):
-        errors = [(abs(score - (1 if score >= 0.5 else 0))/score)*100 for score, label in zip(self.scores, self.labels)]
+        errors = [
+            (abs(score - (1 if score >= 0.5 else 0)) / score) * 100
+            for score, label in zip(self.scores, self.labels)
+        ]
 
-        return sum(errors)/len(errors)
+        return sum(errors) / len(errors)

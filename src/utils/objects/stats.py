@@ -15,7 +15,12 @@ class Stat:
         self.acc = acc
 
     def __add__(self, other):
-        return Stat(self.outs + other.outs, self.loss + other.loss, self.acc + other.acc, self.labels + other.labels)
+        return Stat(
+            self.outs + other.outs,
+            self.loss + other.loss,
+            self.acc + other.acc,
+            self.labels + other.labels,
+        )
 
     def __str__(self):
         return f"Loss: {round(self.loss, 4)}; Acc: {round(self.acc, 4)};"

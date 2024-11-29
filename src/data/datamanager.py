@@ -1,14 +1,14 @@
 import glob
-
-import pandas as pd
-import numpy as np
 import os
-import src.utils.functions.parse as parse
-
 from os import listdir
 from os.path import isfile, join
-from src.utils.objects.input_dataset import InputDataset
+
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
+
+import src.utils.functions.parse as parse
+from src.utils.objects.input_dataset import InputDataset
 
 
 def read(path, json_file):
@@ -27,7 +27,7 @@ def get_ratio(dataset, ratio):
 
 def load(path, pickle_file, ratio=1):
     dataset = pd.read_pickle(path + pickle_file)
-    dataset.info(memory_usage='deep')
+    dataset.info(memory_usage="deep")
     if ratio < 1:
         dataset = get_ratio(dataset, ratio)
 
@@ -49,7 +49,7 @@ def rename(data_frame: pd.DataFrame, old, new):
 def tokenize(data_frame: pd.DataFrame):
     data_frame.func = data_frame.func.apply(parse.tokenizer)
     # Change column name
-    data_frame = rename(data_frame, 'func', 'tokens')
+    data_frame = rename(data_frame, "func", "tokens")
     # Keep just the tokens
     return data_frame[["tokens"]]
 
@@ -60,7 +60,7 @@ def to_files(data_frame: pd.DataFrame, out_path):
 
     for idx, row in data_frame.iterrows():
         file_name = f"{idx}.c"
-        with open(out_path + file_name, 'w') as f:
+        with open(out_path + file_name, "w") as f:
             f.write(row.func)
 
 
@@ -102,7 +102,9 @@ def get_directory_files(directory):
 
 
 def loads(data_sets_dir, ratio=1):
-    data_sets_files = sorted([f for f in listdir(data_sets_dir) if isfile(join(data_sets_dir, f))])
+    data_sets_files = sorted(
+        [f for f in listdir(data_sets_dir) if isfile(join(data_sets_dir, f))]
+    )
 
     if ratio < 1:
         data_sets_files = get_ratio(data_sets_files, ratio)

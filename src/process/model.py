@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from torch_geometric.nn.conv import GatedGraphConv
 
 torch.manual_seed(2020)
@@ -25,7 +24,9 @@ def init_weights(m):
 
 class Conv(nn.Module):
 
-    def __init__(self, conv1d_1, conv1d_2, maxpool1d_1, maxpool1d_2, fc_1_size, fc_2_size):
+    def __init__(
+        self, conv1d_1, conv1d_2, maxpool1d_1, maxpool1d_2, fc_1_size, fc_2_size
+    ):
         super(Conv, self).__init__()
         self.conv1d_1_args = conv1d_1
         self.conv1d_1 = nn.Conv1d(**conv1d_1)
@@ -75,9 +76,11 @@ class Net(nn.Module):
     def __init__(self, gated_graph_conv_args, conv_args, emb_size, device):
         super(Net, self).__init__()
         self.ggc = GatedGraphConv(**gated_graph_conv_args).to(device)
-        self.conv = Conv(**conv_args,
-                         fc_1_size=gated_graph_conv_args["out_channels"] + emb_size,
-                         fc_2_size=gated_graph_conv_args["out_channels"]).to(device)
+        self.conv = Conv(
+            **conv_args,
+            fc_1_size=gated_graph_conv_args["out_channels"] + emb_size,
+            fc_2_size=gated_graph_conv_args["out_channels"]
+        ).to(device)
         # self.conv.apply(init_weights)
 
     def forward(self, data):

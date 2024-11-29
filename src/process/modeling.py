@@ -1,7 +1,9 @@
-from ..utils.objects.metrics import Metrics
-import torch
 import time
+
+import torch
+
 from ..utils import log as logger
+from ..utils.objects.metrics import Metrics
 
 
 class Train(object):
@@ -64,7 +66,7 @@ class History:
 
     def __str__(self):
         epoch = f"\nEpoch {self.epoch};"
-        stats = ' - '.join([f"{res}" for res in self.current()])
+        stats = " - ".join([f"{res}" for res in self.current()])
         timer = f"Time: {(time.time() - self.timer)}"
 
         return f"{epoch} - {stats} - {timer}"
