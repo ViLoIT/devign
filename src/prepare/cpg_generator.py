@@ -1,11 +1,10 @@
 import json
 import os
-import os.path
 import re
 import subprocess
 import time
-
-from .cpg_client_wrapper import CPGClientWrapper
+from typing import Any
+from src.prepare.cpg_client_wrapper import CPGClientWrapper
 
 # from ..data import datamanager as data
 
@@ -24,83 +23,99 @@ def funcs_to_graphs(funcs_path):
     return graphs_json["functions"]
 
 
-def graph_indexing(graph):
-    idx = int(graph["file"].split(".c")[0].split("/")[-1])
-    del graph["file"]
-    return idx, {"functions": [graph]}
-
-
-def joern_parse(joern_path, input_path, output_path, file_name):
+def joern_parse(joern_path, input_path, output_path, file_name) -> str:
     out_file = file_name + ".bin"
-    joern_parse_call = subprocess.run(
+    binary_file = os.path.join(
+        os.getcwd(),
+        "./" + joern_path + "joern-parse",
+    )
+    cmd = " ".join(
         [
-            "./" + joern_path + "joern-parse",
+            binary_file,
             input_path,
             "--output",
             output_path + out_file,
-        ],
-        stdout=subprocess.PIPE,
+        ]
+    )
+
+    subprocess.run(
+        cmd,
         text=True,
         check=True,
+        shell=True,
+        cwd=os.getcwd(),
     )
-    print(str(joern_parse_call))
     return out_file
 
 
-def joern_create(joern_path, in_path, out_path, cpg_files):
-    joern_process = subprocess.Popen(
-        ["./" + joern_path + "joern"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
-    )
-    json_files = []
+def joern_create(
+    joern_path: str, in_path: str, out_path: str, cpg_files: list[str]
+) -> list[str]:
+    joern_repl_binary: str = "./" + joern_path + "joern"
+    json_files: list[str] = []
+
     for cpg_file in cpg_files:
         json_file_name = f"{cpg_file.split('.')[0]}.json"
         json_files.append(json_file_name)
 
         print(in_path + cpg_file)
-        if os.path.exists(in_path + cpg_file):
-            json_out = f"{os.path.abspath(out_path)}/{json_file_name}"
-            import_cpg_cmd = (
-                f'importCpg("{os.path.abspath(in_path)}/{cpg_file}")\r'.encode()
+
+        if not os.path.exists(in_path + cpg_file):
+            continue
+
+        cpg_file_path = f"{os.path.abspath(in_path)}/{cpg_file}"
+        json_out = f"{os.path.abspath(out_path)}/{json_file_name}"
+        script_path = (
+            f"{os.path.dirname(os.path.abspath(joern_path))}/graph-for-funcs.sc"
+        )
+
+        cmd = " ".join(
+            [
+                joern_repl_binary,
+                f"--script {script_path}",
+                f"--param cpgFile={cpg_file_path}",
+                f"--param outFile={json_out}",
+            ]
+        )
+
+        try:
+            subprocess.run(
+                cmd,
+                text=True,
+                check=True,
+                shell=True,
+                cwd=os.getcwd(),
+                timeout=60,
             )
-            script_path = (
-                f"{os.path.dirname(os.path.abspath(joern_path))}/graph-for-funcs.sc"
-            )
-            run_script_cmd = (
-                f'cpg.runScript("{script_path}").toString() |> "{json_out}"\r'.encode()
-            )
-            joern_process.stdin.write(import_cpg_cmd)
-            print(joern_process.stdout.readline().decode())
-            joern_process.stdin.write(run_script_cmd)
-            print(joern_process.stdout.readline().decode())
-            joern_process.stdin.write("delete\r".encode())
-            print(joern_process.stdout.readline().decode())
-    try:
-        outs, errs = joern_process.communicate(timeout=60)
-    except subprocess.TimeoutExpired:
-        joern_process.kill()
-        outs, errs = joern_process.communicate()
-    if outs is not None:
-        print(f"Outs: {outs.decode()}")
-    if errs is not None:
-        print(f"Errs: {errs.decode()}")
+        except subprocess.TimeoutExpired:
+            print(f"Timeout 60 seconds for {cpg_file}")
+
     return json_files
 
 
+def graph_indexing(graph) -> tuple[int, dict[str, list[Any]]]:
+    idx = int(graph["file"].split(".c")[0].split("/")[-1])
+    del graph["file"]
+    return (idx, {"functions": [graph]})
+
+
 def json_process(in_path, json_file):
-    if os.path.exists(in_path + json_file):
-        with open(in_path + json_file) as jf:
-            cpg_string = jf.read()
-            cpg_string = re.sub(
-                r"io\.shiftleft\.codepropertygraph\.generated\.", "", cpg_string
-            )
-            cpg_json = json.loads(cpg_string)
-            container = [
-                graph_indexing(graph)
-                for graph in cpg_json["functions"]
-                if graph["file"] != "N/A"
-            ]
-            return container
-    return None
+    if not os.path.exists(in_path + json_file):
+        return None
+
+    with open(in_path + json_file) as jf:
+        cpg_string = jf.read()
+        cpg_string = re.sub(
+            r"io\.shiftleft\.codepropertygraph\.generated\.", "", cpg_string
+        )
+
+        cpg_json = json.loads(cpg_string)
+        container = [
+            graph_indexing(graph)
+            for graph in cpg_json["functions"]
+            if graph["file"] not in ["<includes>", "<empty>"]
+        ]
+        return container
 
 
 """

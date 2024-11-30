@@ -300,7 +300,7 @@ Tokens:
 #### Process Task
 
 In this task the previous transformed dataset is split into train, validation and test sets which are
-used to train an evaluate the model. The accuracy from training output is **softmax accuracy**.
+used to train and evaluate the model. The accuracy from training output is **softmax accuracy**.
 
 Execute with:
 

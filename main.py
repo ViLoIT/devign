@@ -11,6 +11,7 @@
 
 import argparse
 import gc
+import os
 import shutil
 from argparse import ArgumentParser
 
@@ -28,6 +29,7 @@ DEVICE = FILES.get_device()
 
 
 def select(dataset):
+    # ["FFmpeg", "qemu"]
     result = dataset.loc[dataset["project"] == "FFmpeg"]
     len_filter = result.func.str.len() < 1200
     result = result.loc[len_filter]
@@ -48,7 +50,7 @@ def create_task():
     slices = data.slice_frame(filtered, context.slice_size)
     slices = [(s, slice.apply(lambda x: x)) for s, slice in slices]
 
-    cpg_files = []
+    cpg_files: list[str] = []
     # Create CPG binary files
     for s, slice in slices:
         data.to_files(slice, PATHS.joern)
@@ -87,9 +89,11 @@ def embed_task():
         tokens_dataset = data.tokenize(cpg_dataset)
         data.write(tokens_dataset, PATHS.tokens, f"{file_name}_{FILES.tokens}")
         # word2vec used to learn the initial embedding of each token
-        w2vmodel.build_vocab(sentences=tokens_dataset.tokens, update=not w2v_init)
+        w2vmodel.build_vocab(corpus_iterable=tokens_dataset.tokens, update=not w2v_init)
         w2vmodel.train(
-            tokens_dataset.tokens, total_examples=w2vmodel.corpus_count, epochs=1
+            corpus_iterable=tokens_dataset.tokens,
+            total_examples=w2vmodel.corpus_count,
+            epochs=1,
         )
         if w2v_init:
             w2v_init = False
@@ -120,9 +124,11 @@ def process_task(stopping):
     context = configs.Process()
     devign = configs.Devign()
     model_path = PATHS.model + FILES.model
+    os.makedirs(PATHS.model, exist_ok=True)
+
     model = process.Devign(
         path=model_path,
-        device=DEVICE,
+        device=DEVICE.type,
         model=devign.model,
         learning_rate=devign.learning_rate,
         weight_decay=devign.weight_decay,
