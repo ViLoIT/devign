@@ -2,8 +2,8 @@ import json
 import os
 import re
 import subprocess
-import time
 from typing import Any
+
 from src.prepare.cpg_client_wrapper import CPGClientWrapper
 
 # from ..data import datamanager as data
@@ -23,7 +23,9 @@ def funcs_to_graphs(funcs_path):
     return graphs_json["functions"]
 
 
-def joern_parse(joern_path, input_path, output_path, file_name) -> str:
+def joern_parse(
+    joern_path: str, input_path: str, output_path: str, file_name: str
+) -> str:
     out_file = file_name + ".bin"
     binary_file = os.path.join(
         os.getcwd(),
@@ -32,9 +34,10 @@ def joern_parse(joern_path, input_path, output_path, file_name) -> str:
     cmd = " ".join(
         [
             binary_file,
-            input_path,
+            "-J-Xmx25G",
             "--output",
             output_path + out_file,
+            input_path,
         ]
     )
 
@@ -44,7 +47,9 @@ def joern_parse(joern_path, input_path, output_path, file_name) -> str:
         check=True,
         shell=True,
         cwd=os.getcwd(),
+        timeout=600,
     )
+
     return out_file
 
 
@@ -72,6 +77,7 @@ def joern_create(
         cmd = " ".join(
             [
                 joern_repl_binary,
+                "-J-Xmx25G",
                 f"--script {script_path}",
                 f"--param cpgFile={cpg_file_path}",
                 f"--param outFile={json_out}",
@@ -85,7 +91,7 @@ def joern_create(
                 check=True,
                 shell=True,
                 cwd=os.getcwd(),
-                timeout=60,
+                timeout=600,
             )
         except subprocess.TimeoutExpired:
             print(f"Timeout 60 seconds for {cpg_file}")
@@ -93,13 +99,28 @@ def joern_create(
     return json_files
 
 
-def graph_indexing(graph) -> tuple[int, dict[str, list[Any]]]:
-    idx = int(graph["file"].split(".c")[0].split("/")[-1])
+def graph_indexing(
+    graph,
+    language: str = "c",
+) -> tuple[int, dict[str, list[Any]]]:
+    match language:
+        case "rust":
+            file_ext = ".rs"
+        case "c":
+            file_ext = ".c"
+        case _:
+            file_ext = ".c"
+
+    idx = int(graph["file"].split(file_ext)[0].split("/")[-1])
     del graph["file"]
     return (idx, {"functions": [graph]})
 
 
-def json_process(in_path, json_file):
+def json_process(
+    in_path: str,
+    json_file: str,
+    language: str = "c",
+):
     if not os.path.exists(in_path + json_file):
         return None
 
@@ -111,7 +132,7 @@ def json_process(in_path, json_file):
 
         cpg_json = json.loads(cpg_string)
         container = [
-            graph_indexing(graph)
+            graph_indexing(graph, language)
             for graph in cpg_json["functions"]
             if graph["file"] not in ["<includes>", "<empty>"]
         ]

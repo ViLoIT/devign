@@ -1,0 +1,35 @@
+| Metric               | Logisitic Regression | Devign              | CodeBert + LSTM    | CodeBert + LG      |
+| -------------------- | -------------------- | ------------------- | ------------------ | ------------------ |
+| Accuracy             | 0.7321428571428571   | 0.7652694610778443  | 0.8035714285714286 | 0.8392857142857143 |
+| Precision            | 0.7307692307692307   | 0.7693236714975845  | 0.8076923076923077 | 0.8214285714285714 |
+| Recall               | 0.7037037037037037   | 0.9922118380062306  | 0.7777777777777778 | 0.8518518518518519 |
+| F1-score             | 0.7169811320754716   | 0.8666666666666667  | 0.7924528301886793 | 0.8363636363636363 |
+| ROC AUC              | 0.8071519795657727   | 0.4744725840556551  | 0.8837803320561941 | 0.89272030651341   |
+| Precision-Recall AUC | 0.7400311365109602   | 0.7785454595108143  | 0.8284139987006222 | 0.8983631885913974 |
+| MCC                  | 0.46321262548101694  | 0.01190365485636284 | 0.606527028944757  | 0.6790046053972701 |
+| Error Rate           | 0.2678571428571429   | 10.012780811437555  | 0.1964285714285714 | 0.1607142857142857 |
+
+- Devign stats:
+
+```
+
+Confusion matrix:
+[
+    [2 191]
+    [5 637]
+]
+
+TP: 637, FP: 191, TN: 2, FN: 5
+```
+
+Dạ thưa thầy em có làm thêm phần ứng dụng ML cho CPG thì được kết quả như sau ạ
+
+- Em tìm thấy 1 bài báo ứng dụng ML trên CPG từ 2019, tên là Devign. Bài này họ làm trên C/C++ và có sử dụng Joern
+
+- Em clone cái Devign này, chỉnh sửa và áp dụng cho phần Joer Rust của mình
+
+- Em so sánh Devign (đã sửa của mình) và 1 model ML khác dùng Logistic Regresion
+
+- Bộ dataset em sử dụng là bộ data set cân bằng gồm: ~130 file Rust có bug (lấy từ bài báo khác) và ~130 file Rust không bug (thu thập từ các Repo lớn khác)
+
+- Kết quả (như hình) cho thấy Devign của mình tốt hơn

@@ -1,8 +1,10 @@
-from torch.utils.data import Dataset as TorchDataset
-from torch_geometric.data import DataLoader
+# from torch.utils.data import Dataset
+# from torch.utils.data import Dataset as TorchDataset
+from torch_geometric.data import Dataset
+from torch_geometric.loader import DataLoader as NewDataLoader
 
 
-class InputDataset(TorchDataset):
+class InputDataset(Dataset):
     def __init__(self, dataset):
         self.dataset = dataset
 
@@ -13,4 +15,4 @@ class InputDataset(TorchDataset):
         return self.dataset.iloc[index].input
 
     def get_loader(self, batch_size, shuffle=True):
-        return DataLoader(dataset=self, batch_size=batch_size, shuffle=shuffle)
+        return NewDataLoader(dataset=self, batch_size=batch_size, shuffle=shuffle)

@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "name": "Create task",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "-c"
+            ]
+        },
+        {
+            "name": "Embedded task",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "-e"
+            ]
+        },
+        {
+            "name": "Process task",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "-p"
+            ]
+        },
+    ]
+}

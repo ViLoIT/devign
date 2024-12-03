@@ -2,6 +2,7 @@ import glob
 import os
 from os import listdir
 from os.path import isfile, join
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -38,7 +39,13 @@ def write(data_frame: pd.DataFrame, path, file_name):
     data_frame.to_pickle(path + file_name)
 
 
-def apply_filter(data_frame: pd.DataFrame, filter_func):
+def apply_filter(
+    data_frame: pd.DataFrame,
+    filter_func: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
+):
+    if filter_func is None:
+        return data_frame
+
     return filter_func(data_frame)
 
 
@@ -54,12 +61,23 @@ def tokenize(data_frame: pd.DataFrame):
     return data_frame[["tokens"]]
 
 
-def to_files(data_frame: pd.DataFrame, out_path):
+def to_files(
+    data_frame: pd.DataFrame,
+    out_path: str,
+    language: str = "c",
+):
     # path = f"{self.out_path}/{self.dataset_name}/"
     os.makedirs(out_path, exist_ok=True)
 
     for idx, row in data_frame.iterrows():
-        file_name = f"{idx}.c"
+        match language:
+            case "rust":
+                file_name = f"{idx}.rs"
+            case "c":
+                file_name = f"{idx}.c"
+            case _:
+                file_name = f"{idx}.c"
+
         with open(out_path + file_name, "w") as f:
             f.write(row.func)
 

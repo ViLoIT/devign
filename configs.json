@@ -21,17 +21,18 @@
   },
   "create": {
     "filter_column_value": { "project": "qemu" },
-    "slice_size": 100,
-    "joern_cli_dir": "joern/joern-cli/"
+    "slice_size": 25,
+    "language": "rust",
+    "joern_cli_dir": "joern.new/joern-cli/"
   },
   "paths": {
-    "cpg": "data/cpg/",
-    "joern": "data/joern/",
-    "raw": "data/raw/",
-    "input": "data/input/",
-    "model": "data/model/",
-    "tokens": "data/tokens/",
-    "w2v": "data/w2v/"
+    "cpg": "data.use/cpg/",
+    "joern": "data.use/joern/",
+    "raw": "data.use/raw/",
+    "input": "data.use/input/",
+    "model": "data.use/model/",
+    "tokens": "data.use/tokens/",
+    "w2v": "data.use/w2v/"
   },
   "files": {
     "raw": "dataset.json",
@@ -59,7 +60,7 @@
   "process": {
     "epochs": 100,
     "patience": 10,
-    "batch_size": 8,
+    "batch_size": 16,
     "dataset_ratio": 0.2,
     "shuffle": false
   }

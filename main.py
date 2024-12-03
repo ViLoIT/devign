@@ -15,6 +15,7 @@ import os
 import shutil
 from argparse import ArgumentParser
 
+import pandas as pd
 from gensim.models.word2vec import Word2Vec
 
 import configs
@@ -28,14 +29,13 @@ FILES = configs.Files()
 DEVICE = FILES.get_device()
 
 
-def select(dataset):
+def c_project_filter_func(dataset: pd.DataFrame) -> pd.DataFrame:
     # ["FFmpeg", "qemu"]
-    result = dataset.loc[dataset["project"] == "FFmpeg"]
-    len_filter = result.func.str.len() < 1200
+    result: pd.DataFrame = dataset.loc[dataset["project"] == "FFmpeg"]
+
+    len_filter = result.func.str.len() < 1_000
     result = result.loc[len_filter]
-    # print(len(result))
-    # result = result.iloc[11001:]
-    # print(len(result))
+
     result = result.head(200)
 
     return result
@@ -43,8 +43,10 @@ def select(dataset):
 
 def create_task():
     context = configs.Create()
-    raw = data.read(PATHS.raw, FILES.raw)
-    filtered = data.apply_filter(raw, select)
+    json_file = "dataset.rust.json" if context.language == "rust" else "dataset.c.json"
+    raw = data.read(PATHS.raw, json_file)
+    filter_func = None if context.language == "rust" else c_project_filter_func
+    filtered = data.apply_filter(raw, filter_func)
     filtered = data.clean(filtered)
     data.drop(filtered, ["commit_id", "project"])
     slices = data.slice_frame(filtered, context.slice_size)
@@ -53,7 +55,7 @@ def create_task():
     cpg_files: list[str] = []
     # Create CPG binary files
     for s, slice in slices:
-        data.to_files(slice, PATHS.joern)
+        data.to_files(slice, PATHS.joern, context.language)
         cpg_file = prepare.joern_parse(
             context.joern_cli_dir, PATHS.joern, PATHS.cpg, f"{s}_{FILES.cpg}"
         )
@@ -65,7 +67,7 @@ def create_task():
         context.joern_cli_dir, PATHS.cpg, PATHS.cpg, cpg_files
     )
     for (s, slice), json_file in zip(slices, json_files):
-        graphs = prepare.json_process(PATHS.cpg, json_file)
+        graphs = prepare.json_process(PATHS.cpg, json_file, context.language)
         if graphs is None:
             print(f"Dataset chunk {s} not processed.")
             continue

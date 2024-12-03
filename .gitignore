@@ -145,11 +145,10 @@ static
 .metals
 .bsp
 .scala-build
-.vscode
+.vscode/settings.json
 
 *.zip
 joern-cli
-data/joern
-data/cpg/*.bin
-data/cpg/*.json
+data.old
+data.use
 workspace/**/
