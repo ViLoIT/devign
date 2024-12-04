@@ -66,9 +66,7 @@ def create_task():
         print(f"Dataset {s} to cpg.")
         shutil.rmtree(PATHS.joern)
     # Create CPG with graphs json files
-    json_files = prepare.joern_create(
-        create_config.joern_cli_dir, PATHS.cpg, PATHS.cpg, cpg_files
-    )
+    json_files = prepare.joern_create(create_config, PATHS.cpg, PATHS.cpg, cpg_files)
     for (s, slice), json_file in zip(slices, json_files):
         graphs = prepare.json_process(PATHS.cpg, json_file, create_config.language)
         if graphs is None:
