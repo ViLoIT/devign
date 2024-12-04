@@ -24,8 +24,8 @@ import src.prepare as prepare
 import src.process as process
 import src.utils.functions.cpg as cpg
 
-PATHS = configs.Paths()
-FILES = configs.Files()
+PATHS = configs.PathsConfig()
+FILES = configs.FilesConfig()
 DEVICE = FILES.get_device()
 
 
@@ -42,32 +42,35 @@ def c_project_filter_func(dataset: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_task():
-    context = configs.Create()
-    json_file = "dataset.rust.json" if context.language == "rust" else "dataset.c.json"
+    create_config = configs.CreateConfig()
+    json_file = (
+        "dataset.rust.json" if create_config.language == "rust" else "dataset.c.json"
+    )
     raw = data.read(PATHS.raw, json_file)
-    filter_func = None if context.language == "rust" else c_project_filter_func
+    filter_func = None if create_config.language == "rust" else c_project_filter_func
     filtered = data.apply_filter(raw, filter_func)
     filtered = data.clean(filtered)
     data.drop(filtered, ["commit_id", "project"])
-    slices = data.slice_frame(filtered, context.slice_size)
+    slices = data.slice_frame(filtered, create_config.slice_size)
     slices = [(s, slice.apply(lambda x: x)) for s, slice in slices]
 
     cpg_files: list[str] = []
     # Create CPG binary files
     for s, slice in slices:
-        data.to_files(slice, PATHS.joern, context.language)
+        data.to_files(slice, PATHS.joern, create_config.language)
+
         cpg_file = prepare.joern_parse(
-            context.joern_cli_dir, PATHS.joern, PATHS.cpg, f"{s}_{FILES.cpg}"
+            create_config, PATHS.joern, PATHS.cpg, f"{s}_{FILES.cpg}.bin"
         )
         cpg_files.append(cpg_file)
         print(f"Dataset {s} to cpg.")
         shutil.rmtree(PATHS.joern)
     # Create CPG with graphs json files
     json_files = prepare.joern_create(
-        context.joern_cli_dir, PATHS.cpg, PATHS.cpg, cpg_files
+        create_config.joern_cli_dir, PATHS.cpg, PATHS.cpg, cpg_files
     )
     for (s, slice), json_file in zip(slices, json_files):
-        graphs = prepare.json_process(PATHS.cpg, json_file, context.language)
+        graphs = prepare.json_process(PATHS.cpg, json_file, create_config.language)
         if graphs is None:
             print(f"Dataset chunk {s} not processed.")
             continue
@@ -80,10 +83,10 @@ def create_task():
 
 
 def embed_task():
-    context = configs.Embed()
+    embed_config = configs.EmbedConfig()
     # Tokenize source code into tokens
     dataset_files = data.get_directory_files(PATHS.cpg)
-    w2vmodel = Word2Vec(**context.w2v_args)
+    w2vmodel = Word2Vec(**embed_config.w2v_args)
     w2v_init = True
     for pkl_file in dataset_files:
         file_name = pkl_file.split(".")[0]
@@ -101,13 +104,17 @@ def embed_task():
             w2v_init = False
         # Embed cpg to node representation and pass to graph data structure
         cpg_dataset["nodes"] = cpg_dataset.apply(
-            lambda row: cpg.parse_to_nodes(row.cpg, context.nodes_dim), axis=1
+            lambda row: cpg.parse_to_nodes(row.cpg, embed_config.nodes_dim), axis=1
         )
         # remove rows with no nodes
         cpg_dataset = cpg_dataset.loc[cpg_dataset.nodes.map(len) > 0]
         cpg_dataset["input"] = cpg_dataset.apply(
             lambda row: prepare.nodes_to_input(
-                row.nodes, row.target, context.nodes_dim, w2vmodel.wv, context.edge_type
+                row.nodes,
+                row.target,
+                embed_config.nodes_dim,
+                w2vmodel.wv,
+                embed_config.edge_type,
             ),
             axis=1,
         )
@@ -123,26 +130,28 @@ def embed_task():
 
 
 def process_task(stopping):
-    context = configs.Process()
-    devign = configs.Devign()
+    process_config = configs.ProcessConfig()
+    devign_config = configs.DevignConfig()
     model_path = PATHS.model + FILES.model
     os.makedirs(PATHS.model, exist_ok=True)
 
     model = process.Devign(
         path=model_path,
         device=DEVICE.type,
-        model=devign.model,
-        learning_rate=devign.learning_rate,
-        weight_decay=devign.weight_decay,
-        loss_lambda=devign.loss_lambda,
+        model=devign_config.model,
+        learning_rate=devign_config.learning_rate,
+        weight_decay=devign_config.weight_decay,
+        loss_lambda=devign_config.loss_lambda,
     )
-    train = process.Train(model, context.epochs)
+    train = process.Train(model, process_config.epochs)
     input_dataset = data.loads(PATHS.input)
     # split the dataset and pass to DataLoader with batch size
     train_loader, val_loader, test_loader = list(
         map(
-            lambda x: x.get_loader(context.batch_size, shuffle=context.shuffle),
-            data.train_val_test_split(input_dataset, shuffle=context.shuffle),
+            lambda x: x.get_loader(
+                process_config.batch_size, shuffle=process_config.shuffle
+            ),
+            data.train_val_test_split(input_dataset, shuffle=process_config.shuffle),
         )
     )
     train_loader_step = process.LoaderStep("Train", train_loader, DEVICE)
@@ -150,7 +159,7 @@ def process_task(stopping):
     test_loader_step = process.LoaderStep("Test", test_loader, DEVICE)
 
     if stopping:
-        early_stopping = process.EarlyStopping(model, patience=context.patience)
+        early_stopping = process.EarlyStopping(model, patience=process_config.patience)
         train(train_loader_step, val_loader_step, early_stopping)
         model.load()
     else:

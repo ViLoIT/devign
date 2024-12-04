@@ -20,7 +20,7 @@ class Config(object):
         return self._config
 
 
-class Create(Config):
+class CreateConfig(Config):
     def __init__(self):
         super().__init__("create")
 
@@ -37,11 +37,15 @@ class Create(Config):
         return self.get_property("language")
 
     @property
+    def rust_parser_path(self):
+        return self.get_property("rust_parser_path")
+
+    @property
     def joern_cli_dir(self):
         return self.get_property("joern_cli_dir")
 
 
-class Data(Config):
+class DataConfig(Config):
     def __init__(self, config):
         super().__init__(config)
 
@@ -70,7 +74,7 @@ class Data(Config):
         return self.get_property("w2v")
 
 
-class Paths(Data):
+class PathsConfig(DataConfig):
     def __init__(self):
         super().__init__("paths")
 
@@ -79,7 +83,7 @@ class Paths(Data):
         return self.get_property("joern")
 
 
-class Files(Data):
+class FilesConfig(DataConfig):
     def __init__(self):
         super().__init__("files")
 
@@ -92,7 +96,7 @@ class Files(Data):
         return self.get_property("w2v")
 
 
-class Embed(Config):
+class EmbedConfig(Config):
     def __init__(self):
         super().__init__("embed")
 
@@ -109,7 +113,7 @@ class Embed(Config):
         return self.get_property("edge_type")
 
 
-class Process(Config):
+class ProcessConfig(Config):
     def __init__(self):
         super().__init__("process")
 
@@ -134,7 +138,7 @@ class Process(Config):
         return self.get_property("shuffle")
 
 
-class Devign(Config):
+class DevignConfig(Config):
     def __init__(self):
         super().__init__("devign")
 

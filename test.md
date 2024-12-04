@@ -21,15 +21,3 @@ Confusion matrix:
 
 TP: 637, FP: 191, TN: 2, FN: 5
 ```
-
-Dạ thưa thầy em có làm thêm phần ứng dụng ML cho CPG thì được kết quả như sau ạ
-
-- Em tìm thấy 1 bài báo ứng dụng ML trên CPG từ 2019, tên là Devign. Bài này họ làm trên C/C++ và có sử dụng Joern
-
-- Em clone cái Devign này, chỉnh sửa và áp dụng cho phần Joer Rust của mình
-
-- Em so sánh Devign (đã sửa của mình) và 1 model ML khác dùng Logistic Regresion
-
-- Bộ dataset em sử dụng là bộ data set cân bằng gồm: ~130 file Rust có bug (lấy từ bài báo khác) và ~130 file Rust không bug (thu thập từ các Repo lớn khác)
-
-- Kết quả (như hình) cho thấy Devign của mình tốt hơn

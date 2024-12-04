@@ -4,6 +4,7 @@ import re
 import subprocess
 from typing import Any
 
+from configs import CreateConfig
 from src.prepare.cpg_client_wrapper import CPGClientWrapper
 
 # from ..data import datamanager as data
@@ -24,19 +25,27 @@ def funcs_to_graphs(funcs_path):
 
 
 def joern_parse(
-    joern_path: str, input_path: str, output_path: str, file_name: str
+    create_config: CreateConfig,
+    input_path: str,
+    output_path: str,
+    out_file: str,
 ) -> str:
-    out_file = file_name + ".bin"
     binary_file = os.path.join(
         os.getcwd(),
-        "./" + joern_path + "joern-parse",
+        create_config.joern_cli_dir,
+        "joern-parse",
     )
     cmd = " ".join(
         [
             binary_file,
             "-J-Xmx25G",
             "--output",
-            output_path + out_file,
+            os.path.join(output_path, out_file),
+            (
+                f"--rust-parser-path {create_config.rust_parser_path}"
+                if create_config.language == "rust"
+                else ""
+            ),
             input_path,
         ]
     )
@@ -54,25 +63,29 @@ def joern_parse(
 
 
 def joern_create(
-    joern_path: str, in_path: str, out_path: str, cpg_files: list[str]
+    create_config: CreateConfig, in_path: str, out_path: str, cpg_files: list[str]
 ) -> list[str]:
-    joern_repl_binary: str = "./" + joern_path + "joern"
+    joern_repl_binary = os.path.join(
+        os.getcwd(),
+        create_config.joern_cli_dir,
+        "joern",
+    )
     json_files: list[str] = []
 
     for cpg_file in cpg_files:
+        # TODO: fix "cpg_file.split('.')[0]" to be more robust
         json_file_name = f"{cpg_file.split('.')[0]}.json"
         json_files.append(json_file_name)
+        cpg_file_path = os.path.join(os.getcwd(), in_path, cpg_file)
 
-        print(in_path + cpg_file)
+        print(cpg_file_path)
 
-        if not os.path.exists(in_path + cpg_file):
+        if not os.path.exists(cpg_file_path):
             continue
 
         cpg_file_path = f"{os.path.abspath(in_path)}/{cpg_file}"
         json_out = f"{os.path.abspath(out_path)}/{json_file_name}"
-        script_path = (
-            f"{os.path.dirname(os.path.abspath(joern_path))}/graph-for-funcs.sc"
-        )
+        script_path = f"{os.path.dirname(os.path.abspath(create_config.joern_cli_dir))}/graph-for-funcs.sc"
 
         cmd = " ".join(
             [
@@ -121,11 +134,13 @@ def json_process(
     json_file: str,
     language: str = "c",
 ):
-    if not os.path.exists(in_path + json_file):
+    json_file_path = os.path.join(os.getcwd(), in_path, json_file)
+
+    if not os.path.exists(json_file_path):
         return None
 
-    with open(in_path + json_file) as jf:
-        cpg_string = jf.read()
+    with open(json_file_path) as f:
+        cpg_string = f.read()
         cpg_string = re.sub(
             r"io\.shiftleft\.codepropertygraph\.generated\.", "", cpg_string
         )

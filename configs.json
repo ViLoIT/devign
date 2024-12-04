@@ -23,6 +23,7 @@
     "filter_column_value": { "project": "qemu" },
     "slice_size": 25,
     "language": "rust",
+    "rust_parser_path": "/home/example/Workspace/Devign/rust-parser",
     "joern_cli_dir": "joern.new/joern-cli/"
   },
   "paths": {
