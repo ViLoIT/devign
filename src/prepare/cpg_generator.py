@@ -35,18 +35,21 @@ def joern_parse(
         create_config.joern_cli_dir,
         "joern-parse",
     )
+
+    rust_specific_config = [
+        "--language RUSTLANG",
+        "--frontend-args",
+        f"--rust-parser-path {create_config.rust_parser_path}",
+    ]
+
     cmd = " ".join(
         [
             binary_file,
             "-J-Xmx25G",
+            input_path,
             "--output",
             os.path.join(output_path, out_file),
-            (
-                f"--rust-parser-path {create_config.rust_parser_path}"
-                if create_config.language == "rust"
-                else ""
-            ),
-            input_path,
+            *(rust_specific_config if create_config.language == "rust" else []),
         ]
     )
 
