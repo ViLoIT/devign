@@ -47,7 +47,8 @@ def create_task():
         "dataset.rust.json" if create_config.language == "rust" else "dataset.c.json"
     )
     raw = data.read(PATHS.raw, json_file)
-    filter_func = None if create_config.language == "rust" else c_project_filter_func
+    filter_func = None if create_config.language == "rust" else None
+    # c_project_filter_func
     filtered = data.apply_filter(raw, filter_func)
     filtered = data.clean(filtered)
     data.drop(filtered, ["commit_id", "project"])

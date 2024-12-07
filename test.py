@@ -5,7 +5,7 @@ OUTPUT = "projects.c.json"
 LIMIT = 1_000_000
 
 
-def process2(limit: int = 10):
+def test_c_project(limit: int = 10):
     inputs = json.load(open(INPUT))[:limit]
 
     data = list(
@@ -30,5 +30,11 @@ def process2(limit: int = 10):
     json.dump(data, open(OUTPUT, "w"), indent=2)
 
 
+def test_rust_project(filename: str):
+    with open(filename, "rb") as f:
+        data = json.load(f)
+        print(len(data))
+
+
 if __name__ == "__main__":
-    process2(10)
+    test_rust_project("dataset.join.json")
