@@ -152,7 +152,7 @@ def json_process(
         container = [
             graph_indexing(graph, language)
             for graph in cpg_json["functions"]
-            if graph["file"] not in ["<includes>", "<empty>"]
+            if graph["file"] not in ["<includes>", "<empty>", "N/A"]
         ]
         return container
 

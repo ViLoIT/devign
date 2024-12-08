@@ -149,6 +149,5 @@ static
 
 *.zip
 joern-cli
-data.old
-data.use
+data.*
 workspace/**/

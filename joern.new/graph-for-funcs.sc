@@ -88,7 +88,7 @@ implicit val encodeFuncResult: Encoder[GraphForFuncsResult]     = deriveEncoder
       .filter(_.toString != methodId)
 
     GraphForFuncsFunction(methodName, methodFile, methodId, astChildren, cfgChildren, pdgChildren.distinct)
-  }.l).asJson.spaces2 #> s"$outFile"
+  }.l).asJson.noSpaces #> s"$outFile"
 
   // noSpaces
   // spaces2
