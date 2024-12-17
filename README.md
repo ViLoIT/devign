@@ -2,14 +2,12 @@
 
 Implementation of Devign Model in Python with code for processing the dataset and generation of Code Property Graphs.
 
-###### This project is under development. For now, just the Abstract Syntax Tree is considered for the graph embedding of code and model training.
+> This project is under development. For now, just the Abstract Syntax Tree is considered for the graph embedding of code and model training.
 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-    - [Software](#software)
-    - [Python Libraries](#python-libraries)
+  - [Notes](#notes)
   - [Setup](#setup)
 - [Structure](#structure)
 - [Usage](#usage)
@@ -29,28 +27,13 @@ Implementation of Devign Model in Python with code for processing the dataset an
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-### Prerequisites
+- [Joern >= 4.0](https://joern.io/docs/)
+- [Python >= 3.10](https://www.python.org/)
+- Run `install_requirements.sh` to get dependencies
+- This repo currently run via PyTorch CPU. If you have GPU setting, modify PyTorch to GPU version
+- Test on Ubuntu 24.04. Ubuntu 22.04 may still ok
 
-Install the necessary dependencies before running the project:
-<br/>
-
-##### Software:
-
-- [Joern](https://joern.io/docs/)
-- [Python (=>3.6)](https://www.python.org/)
-
-##### Python Libraries:
-
-- [Pandas (>=1.0.1)](https://pandas.pydata.org/)
-- [scikit-learn (>=0.22.2)](https://scikit-learn.org/stable/)
-- [PyTorch (>=1.4.0)](https://pytorch.org/)
-- [PyTorch Geometric (>=1.4.2)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
-- [Gensim (>=3.8.1)](https://radimrehurek.com/gensim/)
-- [cpgclientlib (>=0.11.111)](https://pypi.org/project/cpgclientlib/)
-
-### Notes
-
----
+## Notes
 
 These notes might save you some time:
 
@@ -67,7 +50,6 @@ These notes might save you some time:
 - When executing the **Create** task, a directory named `joern` is created and deleted automatically under `'project'\data\`.
 - The dataset split for modeling during **Process** task is done under `src/data/datamanger.py`. The sets are balanced and the train/val/test ratio are 0.8/0.1/0.1 respectively.
 - The script **graph-for-funcs.sc** queries the CPG graphs from Joern. That script has a minor change to make it possible to track the files to the CPGs generated. The last time was failing because dependencies in Joern changed and needed the updated version. I assume you can find it in their latest version. I suggested you look at issue **#3**. Those CPGs are saved in a JSON file, check function "joern_create" line 48, it prints the CPG created in Joern to a JSON file **... .toString() |> \"{json_out}\"**,  and that file is processed by the function "json_process". Both those functions are in the file **devign/src/prepare/cpg_generator.py**. If you have troubles creating the CPG JSON file with Joern, I advise you to do what you are trying manually in Joern. Create a new project pointing to the dataset folder containing all the files and query the CPG with the  **graph-for-funcs.sc** script that's built-in, then export it to a file with .toString() |>. Joern commands are quite easy to understand and they have good support on Gitter. As well, follow the [commit](https://github.com/epicosy/devign/commit/87d11378eabaeea3a3c6f2bc5748a6eaf0e32b3c) to understand the changes I've previously made.
-- Tested on Ubuntu 18.04/19.04
 
 ### Setup
 
