@@ -1,5 +1,9 @@
 #! /bin/env bash
 
+if [ -d "venv" ]; then
+  rm -rf venv
+fi
+
 # Install the required packages
 python3 -m venv venv
 source ./venv/bin/activate
