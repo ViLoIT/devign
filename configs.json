@@ -22,18 +22,18 @@
   "create": {
     "filter_column_value": { "project": "qemu" },
     "slice_size": 25,
-    "language": "rust",
+    "language": "csharp",
     "rust_parser_path": "/home/example/Workspace/devign/rust-parser",
     "joern_cli_dir": "joern.new/joern-cli/"
   },
   "paths": {
-    "cpg": "data.use/cpg/",
-    "joern": "data.use/joern/",
-    "raw": "data.use/raw/",
-    "input": "data.use/input/",
-    "model": "data.use/model/",
-    "tokens": "data.use/tokens/",
-    "w2v": "data.use/w2v/"
+    "cpg": "data-csharp/cpg/",
+    "joern": "data-csharp/joern/",
+    "raw": "data-csharp/raw/",
+    "input": "data-csharp/input/",
+    "model": "data-csharp/model/",
+    "tokens": "data-csharp/tokens/",
+    "w2v": "data-csharp/w2v/"
   },
   "files": {
     "raw": "dataset.json",

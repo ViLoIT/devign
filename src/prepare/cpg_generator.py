@@ -122,6 +122,8 @@ def graph_indexing(
     match language:
         case "rust":
             file_ext = ".rs"
+        case "csharp":
+            file_ext = ".cs"
         case "c":
             file_ext = ".c"
         case _:

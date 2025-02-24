@@ -85,10 +85,10 @@ def c_project_filter_func(dataset: pd.DataFrame) -> pd.DataFrame:
 def create_task():
     create_config = configs.CreateConfig()
     json_file = (
-        "dataset.rust.json" if create_config.language == "rust" else "dataset.c.json"
+        "dataset.json" if create_config.language == "csharp" else "dataset.c.json"
     )
     raw = data.read(PATHS.raw, json_file)
-    filter_func = None if create_config.language == "rust" else None
+    filter_func = None if create_config.language == "csharp" else None
     # c_project_filter_func
     filtered = data.apply_filter(raw, filter_func)
     filtered = data.clean(filtered)

@@ -73,6 +73,8 @@ def to_files(
         match language:
             case "rust":
                 file_name = f"{idx}.rs"
+            case "csharp":
+                file_name = f"{idx}.cs"
             case "c":
                 file_name = f"{idx}.c"
             case _:
