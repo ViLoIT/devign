@@ -6,6 +6,8 @@ from typing import Any
 
 from configs import CreateConfig
 from src.prepare.cpg_client_wrapper import CPGClientWrapper
+import logging
+from datetime import datetime
 
 # from ..data import datamanager as data
 
@@ -53,16 +55,72 @@ def joern_parse(
         ]
     )
 
-    subprocess.run(
-        cmd,
-        text=True,
-        check=True,
-        shell=True,
-        cwd=os.getcwd(),
-        timeout=600,
-    )
+    # Define log file
+    log_file_path = os.path.join(output_path, "joern_parse.log")
+
+    with open(log_file_path, "a") as log_file:  # "a" mode appends to the file
+        process = subprocess.Popen(
+            cmd,
+            text=True,
+            shell=True,
+            cwd=os.getcwd(),
+            stdout=log_file,  # Redirect standard output to log file
+            stderr=log_file,  # Redirect errors to the same log file
+        )
+        process.communicate()  # Wait for the process to finish
+
+        if process.returncode != 0:
+            print(f"Error: Joern parse process failed. Check the log at {log_file_path}")
 
     return out_file
+
+# def joern_parse(
+#     create_config: CreateConfig,
+#     input_path: str,
+#     output_path: str,
+#     out_file: str,
+# ) -> str:
+#     binary_file = os.path.join(
+#         os.getcwd(),
+#         create_config.joern_cli_dir,
+#         "joern-parse",
+#     )
+
+#     rust_specific_config = [
+#         "--language RUSTLANG",
+#         "--frontend-args",
+#         f"--rust-parser-path {create_config.rust_parser_path}",
+#     ]
+
+#     cmd = " ".join(
+#         [
+#             binary_file,
+#             "-J-Xmx25G",
+#             input_path,
+#             "--output",
+#             os.path.join(output_path, out_file),
+#             *(rust_specific_config if create_config.language == "rust" else []),
+#         ]
+#     )
+
+#     # Define log file
+#     log_file_path = os.path.join(output_path, "joern_parse.log")
+
+#     with open(log_file_path, "a") as log_file:  # "a" mode appends to the file
+#         process = subprocess.Popen(
+#             cmd,
+#             text=True,
+#             shell=True,
+#             cwd=os.getcwd(),
+#             stdout=log_file,  # Redirect standard output to log file
+#             stderr=log_file,  # Redirect errors to the same log file
+#         )
+#         process.communicate()  # Wait for the process to finish
+
+#         if process.returncode != 0:
+#             print(f"Error: Joern parse process failed. Check the log at {log_file_path}")
+
+#     return out_file
 
 
 def joern_create(

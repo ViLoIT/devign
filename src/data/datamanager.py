@@ -70,6 +70,7 @@ def to_files(
     os.makedirs(out_path, exist_ok=True)
 
     for idx, row in data_frame.iterrows():
+        base_name, ext = os.path.splitext(row.project)
         match language:
             case "rust":
                 file_name = f"{idx}.rs"

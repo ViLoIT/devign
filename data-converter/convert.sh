@@ -15,7 +15,7 @@ COMMIT_ID="8ec824c0903f4ab0c52ea5d8898abc8331a66e9a"
 mkdir -p "$OUTPUT_FOLDER"
 
 # Define output file path
-OUTPUT_FILE="$OUTPUT_FOLDER/dataset.json"
+OUTPUT_FILE="$OUTPUT_FOLDER/$(echo "$INPUT_FOLDER" | sed 's|/|-|g').json"
 
 # Create an empty JSON array
 json_array="[]"

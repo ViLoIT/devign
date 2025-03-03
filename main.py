@@ -92,11 +92,18 @@ def create_task():
     # c_project_filter_func
     filtered = data.apply_filter(raw, filter_func)
     filtered = data.clean(filtered)
-    data.drop(filtered, ["commit_id", "project"])
+    data.drop(filtered, ["commit_id"])
     slices = data.slice_frame(filtered, create_config.slice_size)
     slices = [(s, slice.apply(lambda x: x)) for s, slice in slices]
 
     cpg_files: list[str] = []
+    log_file_path = os.path.join(PATHS.cpg, "joern_parse.log")
+
+    # Delete log file if it exists
+    if os.path.exists(log_file_path):
+        os.remove(log_file_path)
+        print(f"Deleted old log file: {log_file_path}")
+
     # Create CPG binary files
     for s, slice in slices:
         data.to_files(slice, PATHS.joern, create_config.language)
