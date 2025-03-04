@@ -21,6 +21,14 @@ mkdir -p "$BAD_DIR"
 process_file() {
     local input_file="$1"
     local relative_path="${input_file#$INPUT_FOLDER/}"  # Get relative path
+    local filename=$(basename "$input_file")
+
+    # Skip excluded files
+    if [[ "$filename" == "AssemblyInfo.cs" || "$filename" == "Program.cs" ]]; then
+        echo "Skipping: $filename"
+        return
+    fi
+
     local output_bad="$BAD_DIR/${relative_path%.cs}_bad.cs"
     local output_good="$GOOD_DIR/${relative_path%.cs}_good.cs"
 
@@ -85,9 +93,9 @@ process_file() {
     echo "Processed: $input_file → $output_bad & $output_good"
 }
 
-# Find all C# files in the input folder and process them
-find "$INPUT_FOLDER" -type f -name "*.cs" | while read -r file; do
+# Find all C# files, excluding specific ones
+find "$INPUT_FOLDER" -type f -name "*.cs" -print0 | while IFS= read -r -d '' file; do
     process_file "$file"
 done
 
-echo "All C# files processed. Output in $OUTPUT_FOLDER"
+echo "All C# files processed (except AssemblyInfo.cs, Program.cs, and auto-generated files). Output in $OUTPUT_FOLDER"

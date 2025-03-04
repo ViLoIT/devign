@@ -17,10 +17,7 @@ mkdir -p "$OUTPUT_FOLDER"
 # Define output file path
 OUTPUT_FILE="$OUTPUT_FOLDER/$(echo "$INPUT_FOLDER" | sed 's|/|-|g').json"
 
-# Create an empty JSON array
-json_array="[]"
-
-# Read up to X C# files into an array (or all if X_FILES is 0)
+# Find C# files
 if [ "$X_FILES" -gt 0 ]; then
     mapfile -t cs_files < <(find "$INPUT_FOLDER" -type f -name "*.cs" ! -name "*.csproj" | head -n "$X_FILES")
 else
@@ -29,32 +26,39 @@ fi
 
 echo "Found ${#cs_files[@]} C# files to process."
 
-# Initialize a counter
+# Initialize an empty JSON array in a file buffer
+echo "[" > "$OUTPUT_FILE"
+first_file=true
 count=0
 
-# Process each C# file
+# Process each C# file efficiently
 for file in "${cs_files[@]}"; do
     filename=$(basename -- "$file")
-    echo "Parse file $filename at position" 
-    content=$(jq -Rs . < "$file") # Read file content and escape it for JSON
-    
+    content=$(jq -Rs . < "$file")  # Read and escape file content for JSON
+
     json_object="{
         \"project\": \"$filename\", 
-        \"target\": 1,
+        \"target\": 0,
         \"commit_id\": \"$COMMIT_ID\",
         \"func\": $content
     }"
-    
-    # Append JSON object to array
-    json_array=$(echo "$json_array" | jq --argjson obj "$json_object" '. + [$obj]')
+
+    # Add a comma separator for all but the first entry
+    if [ "$first_file" = true ]; then
+        first_file=false
+    else
+        echo "," >> "$OUTPUT_FILE"
+    fi
+
+    echo "$json_object" >> "$OUTPUT_FILE"
 
     ((count++))
-    if ((count % 10 == 0)); then
+    if ((count % 100 == 0)); then
         echo "Processed $count files..."
     fi
 done
 
-# Save the final JSON array to output file
-echo "$json_array" > "$OUTPUT_FILE"
+# Close JSON array
+echo "]" >> "$OUTPUT_FILE"
 
 echo "Combined JSON file created at $OUTPUT_FILE"
