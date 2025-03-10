@@ -17,11 +17,12 @@ mkdir -p "$OUTPUT_FOLDER"
 # Define output file path
 OUTPUT_FILE="$OUTPUT_FOLDER/$(echo "$INPUT_FOLDER" | sed 's|/|-|g').json"
 
-# Find C# files
-if [ "$X_FILES" -gt 0 ]; then
-    mapfile -t cs_files < <(find "$INPUT_FOLDER" -type f -name "*.cs" ! -name "*.csproj" | head -n "$X_FILES")
-else
-    mapfile -t cs_files < <(find "$INPUT_FOLDER" -type f -name "*.cs" ! -name "*.csproj")
+# Find all C# files
+mapfile -t cs_files < <(find "$INPUT_FOLDER" -type f -name "*.cs" ! -name "*.csproj")
+
+# Shuffle and pick X_FILES if specified
+if [ "$X_FILES" -gt 0 ] && [ "${#cs_files[@]}" -gt "$X_FILES" ]; then
+    mapfile -t cs_files < <(printf "%s\n" "${cs_files[@]}" | shuf -n "$X_FILES")
 fi
 
 echo "Found ${#cs_files[@]} C# files to process."
