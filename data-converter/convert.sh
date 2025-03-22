@@ -54,7 +54,7 @@ for file in "${cs_files[@]}"; do
     echo "$json_object" >> "$OUTPUT_FILE"
 
     ((count++))
-    if ((count % 100 == 0)); then
+    if ((count % 1000 == 0)); then
         echo "Processed $count files..."
     fi
 done

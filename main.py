@@ -42,45 +42,92 @@ def c_project_filter_func(dataset: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-# def create_task():
-#     create_config = configs.CreateConfig()
-#     json_file = (
-#         "dataset.rust.json" if create_config.language == "rust" else "dataset.c.json"
-#     )
-#     raw = data.read(PATHS.raw, json_file)
-#     filter_func = None if create_config.language == "rust" else None
-#     # c_project_filter_func
-#     filtered = data.apply_filter(raw, filter_func)
-#     filtered = data.clean(filtered)
-#     data.drop(filtered, ["commit_id", "project"])
-#     slices = data.slice_frame(filtered, create_config.slice_size)
-#     slices = [(s, slice.apply(lambda x: x)) for s, slice in slices]
+def create_cpg_json():
+    create_config = configs.CreateConfig()
+    json_file = (
+        "dataset.json" if create_config.language == "csharp" else "dataset.c.json"
+    )
+    raw = data.read(PATHS.raw, json_file)
+    filter_func = None if create_config.language == "csharp" else None
+    # c_project_filter_func
+    filtered = data.apply_filter(raw, filter_func)
+    filtered = data.clean(filtered)
+    data.drop(filtered, ["commit_id"])
+    slices = data.slice_frame(filtered, create_config.slice_size)
+    slices = [(s, slice.apply(lambda x: x)) for s, slice in slices]
 
-#     cpg_files: list[str] = []
-#     # Create CPG binary files
-#     for s, slice in slices:
-#         data.to_files(slice, PATHS.joern, create_config.language)
+    cpg_files: list[str] = []
+    log_file_path = os.path.join(PATHS.cpg, "joern_parse.log")
 
-#         cpg_file = prepare.joern_parse(
-#             create_config, PATHS.joern, PATHS.cpg, f"{s}_{FILES.cpg}.bin"
-#         )
-#         cpg_files.append(cpg_file)
-#         print(f"Dataset {s} to cpg.")
-#         shutil.rmtree(PATHS.joern)
-#     # Create CPG with graphs json files
-#     json_files = prepare.joern_create(create_config, PATHS.cpg, PATHS.cpg, cpg_files)
-#     for (s, slice), json_file in zip(slices, json_files):
-#         graphs = prepare.json_process(PATHS.cpg, json_file, create_config.language)
-#         if graphs is None:
-#             print(f"Dataset chunk {s} not processed.")
-#             continue
-#         dataset = data.create_with_index(graphs, ["Index", "cpg"])
-#         dataset = data.inner_join_by_index(slice, dataset)
-#         print(f"Writing cpg dataset chunk {s}.")
-#         data.write(dataset, PATHS.cpg, f"{s}_{FILES.cpg}.pkl")
-#         del dataset
-#         gc.collect()
+    # Delete log file if it exists
+    if os.path.exists(log_file_path):
+        os.remove(log_file_path)
+        print(f"Deleted old log file: {log_file_path}")
 
+    # Create CPG binary files
+    for s, slice in slices:
+        data.to_files(slice, PATHS.joern, create_config.language)
+
+        cpg_file = prepare.joern_parse(
+            create_config, PATHS.joern, PATHS.cpg, f"{s}_{FILES.cpg}.bin"
+        )
+        print(f"Dataset {s} to cpg.")
+        shutil.rmtree(PATHS.joern)
+
+        # joern create
+        joern_repl_binary = os.path.join(
+            os.getcwd(),
+            create_config.joern_cli_dir,
+            "joern",
+        )
+
+        # TODO: fix "cpg_file.split('.')[0]" to be more robust
+        json_file = f"{cpg_file.split('.')[0]}.json"
+        cpg_file_path = os.path.join(os.getcwd(), PATHS.cpg, cpg_file)
+
+        if not os.path.exists(cpg_file_path):
+            continue
+
+        cpg_file_path = f"{os.path.abspath(PATHS.cpg)}/{cpg_file}"
+        json_file_path = f"{os.path.abspath(PATHS.cpg)}/{json_file}"
+        script_path = f"{os.path.dirname(os.path.abspath(create_config.joern_cli_dir))}/graph-for-funcs.sc"
+
+        cmd = " ".join(
+            [
+                joern_repl_binary,
+                "-J-Xmx25G",
+                f"--script {script_path}",
+                f"--param cpgFile={cpg_file_path}",
+                f"--param outFile={json_file_path}",
+            ]
+        )
+
+        try:
+            subprocess.run(
+                cmd,
+                text=True,
+                check=True,
+                shell=True,
+                cwd=os.getcwd(),
+                timeout=600,
+            )
+        except subprocess.TimeoutExpired:
+            print(f"Timeout 60 seconds for {cpg_file}")
+            continue
+
+        graphs = prepare.json_process(PATHS.cpg, json_file, create_config.language)
+        if graphs is None:
+            print(f"Dataset chunk {s} not processed.")
+            continue
+        # dataset = data.create_with_index(graphs, ["Index", "cpg"])
+        # dataset = data.inner_join_by_index(slice, dataset)
+        print(f"Writing cpg dataset chunk {s}.")
+        # data.write(dataset, PATHS.cpg, f"{s}_{FILES.cpg}.pkl")
+
+        # del dataset
+        os.remove(cpg_file_path)
+        # os.remove(json_file_path)
+        gc.collect()
 
 def create_task():
     create_config = configs.CreateConfig()
@@ -125,8 +172,6 @@ def create_task():
         json_file = f"{cpg_file.split('.')[0]}.json"
         cpg_file_path = os.path.join(os.getcwd(), PATHS.cpg, cpg_file)
 
-        print(cpg_file_path)
-
         if not os.path.exists(cpg_file_path):
             continue
 
@@ -170,7 +215,6 @@ def create_task():
         os.remove(cpg_file_path)
         os.remove(json_file_path)
         gc.collect()
-
 
 def embed_task():
     embed_config = configs.EmbedConfig()
@@ -248,6 +292,7 @@ def process_task(stopping):
     val_loader_step = process.LoaderStep("Validation", val_loader, DEVICE)
     test_loader_step = process.LoaderStep("Test", test_loader, DEVICE)
 
+    print(f"Start training")
     if stopping:
         early_stopping = process.EarlyStopping(model, patience=process_config.patience)
         train(train_loader_step, val_loader_step, early_stopping)
@@ -274,6 +319,7 @@ def main():
 
     if args.create:
         create_task()
+        create_cpg_json()
     if args.embed:
         embed_task()
     if args.process:

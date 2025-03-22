@@ -34,7 +34,7 @@ class Metrics:
                 y_true=self.labels, y_pred=self.predicts
             ),
             "Precision": metrics.precision_score(
-                y_true=self.labels, y_pred=self.predicts
+                y_true=self.labels, y_pred=self.predicts, zero_division=1
             ),
             "Recall": metrics.recall_score(y_true=self.labels, y_pred=self.predicts),
             "F-measure": metrics.f1_score(y_true=self.labels, y_pred=self.predicts),
@@ -63,8 +63,7 @@ class Metrics:
 
     def error(self):
         errors = [
-            (abs(score - (1 if score >= 0.5 else 0)) / score) * 100
+            (abs(score - (1 if score >= 0.5 else 0)) / (score if score != 0 else 1)) * 100
             for score, label in zip(self.scores, self.labels)
         ]
-
         return sum(errors) / len(errors)

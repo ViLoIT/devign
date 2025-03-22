@@ -8,13 +8,16 @@ torch.manual_seed(2020)
 
 def get_conv_mp_out_size(in_size, last_layer, mps):
     size = in_size
-
+    print(f"Initial input size: {in_size}")
+    
     for mp in mps:
-        size = round((size - mp["kernel_size"]) / mp["stride"] + 1)
+        new_size = (size - mp["kernel_size"]) // mp["stride"] + 1
+        print(f"After maxpool {mp}: size = {new_size} (from {size})")
+        size = new_size  # Update size after each pooling operation
 
-    size = size + 1 if size % 2 != 0 else size
-
-    return int(size * last_layer["out_channels"])
+    output_size = int(size * last_layer["out_channels"])
+    print(f"Final computed conv output size: {output_size}")
+    return output_size
 
 
 def init_weights(m):
@@ -32,8 +35,12 @@ class Conv(nn.Module):
         self.conv1d_1 = nn.Conv1d(**conv1d_1)
         self.conv1d_2 = nn.Conv1d(**conv1d_2)
 
+        print(f"fc1 before: {fc_1_size}")
+        print(f"fc1 before: {fc_2_size}")
         fc1_size = get_conv_mp_out_size(fc_1_size, conv1d_2, [maxpool1d_1, maxpool1d_2])
         fc2_size = get_conv_mp_out_size(fc_2_size, conv1d_2, [maxpool1d_1, maxpool1d_2])
+        print(f"fc1 after: {fc1_size}")
+        print(f"fc1 after: {fc2_size}")
 
         # Dense layers
         self.fc1 = nn.Linear(fc1_size, 1)
